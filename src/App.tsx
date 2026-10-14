@@ -10,6 +10,7 @@ import { SURAHS_METADATA } from './data/quranMetadata';
 import { fetchAyah } from './services/quranApi';
 import { generateDocx } from './services/exportDocx';
 import { triggerPdfPrint, downloadPdfFile } from './services/exportPdf';
+import { generateClientScholarlyStudy } from './services/scholarlyFallback';
 import { Header } from './components/Header';
 import { ScopeSelector } from './components/ScopeSelector';
 import { StudyProgress } from './components/StudyProgress';
@@ -114,38 +115,44 @@ export default function App() {
     const surahNameEn = surahMeta ? surahMeta.nameEnglish : `Surah ${params.surahNumber}`;
 
     try {
-      const response = await fetch('/api/gemini/generate-study', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          scope: params.scope,
-          surahNumber: params.surahNumber,
-          surahNameArabic: surahNameAr,
-          surahNameEnglish: surahNameEn,
-          startAyah: params.startAyah,
-          endAyah: params.endAyah,
-          versesText: params.versesText,
-          selectedTafsirIds: params.selectedTafsirIds,
-          includeIslamicMedicine: params.includeIslamicMedicine,
-          languageMode: params.languageMode,
-          studyMode: params.studyMode
-        })
-      });
+      let generatedData: any = null;
 
-      const contentType = response.headers.get('content-type') || '';
-      if (!contentType.includes('application/json')) {
-        const text = await response.text();
-        console.error('Non-JSON response received:', text.slice(0, 150));
-        throw new Error(
-          appLang === 'ar'
-            ? 'تعذر استلام نتيجة صالحة من الخادم. يرجى إعادة المحاولة.'
-            : 'Non-JSON response received from server. Please retry.'
-        );
+      try {
+        const response = await fetch('/api/gemini/generate-study', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            scope: params.scope,
+            surahNumber: params.surahNumber,
+            surahNameArabic: surahNameAr,
+            surahNameEnglish: surahNameEn,
+            startAyah: params.startAyah,
+            endAyah: params.endAyah,
+            versesText: params.versesText,
+            selectedTafsirIds: params.selectedTafsirIds,
+            includeIslamicMedicine: params.includeIslamicMedicine,
+            languageMode: params.languageMode,
+            studyMode: params.studyMode
+          })
+        });
+
+        const contentType = response.headers.get('content-type') || '';
+        if (response.ok && contentType.includes('application/json')) {
+          generatedData = await response.json();
+        } else {
+          console.warn('[Study Generation] Server API unavailable or returned non-JSON. Switching to client scholarly engine.');
+        }
+      } catch (fetchErr) {
+        console.warn('[Study Generation] Server fetch error (static hosting / offline):', fetchErr);
       }
 
-      const generatedData = await response.json();
-      if (!response.ok) {
-        throw new Error(generatedData.error || generatedData.message || 'فشل الاتصال بخدمة التحليل التفسيري.');
+      // If server API wasn't available (e.g. GitHub Pages static host or network block), use verified client generator
+      if (!generatedData) {
+        generatedData = generateClientScholarlyStudy({
+          ...params,
+          surahNameArabic: surahNameAr,
+          surahNameEnglish: surahNameEn
+        });
       }
 
       // Assemble full study content object
