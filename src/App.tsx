@@ -9,7 +9,7 @@ import { INITIAL_SEED_STUDY } from './data/initialSeedStudy';
 import { SURAHS_METADATA } from './data/quranMetadata';
 import { fetchAyah } from './services/quranApi';
 import { generateDocx } from './services/exportDocx';
-import { triggerPdfPrint } from './services/exportPdf';
+import { triggerPdfPrint, downloadPdfFile } from './services/exportPdf';
 import { Header } from './components/Header';
 import { ScopeSelector } from './components/ScopeSelector';
 import { StudyProgress } from './components/StudyProgress';
@@ -448,22 +448,40 @@ export default function App() {
     }
   };
 
-  // Direct PDF print trigger for saved study record
-  const handleExportPdfRecord = (study: StudyContent) => {
-    triggerPdfPrint(study, {
-      language: study.metadata.languageMode,
-      scopeMode: 'full',
-      includeQuranText: true,
-      includeComparativeTable: true,
-      includeLinguistic: true,
-      includeReflection: true,
-      includeGuidance: true,
-      includeHadith: true,
-      includeIslamicMedicine: study.islamicMedicineAndScience?.enabled ?? false,
-      includeReferences: true,
-      paperSize: 'A4',
-      includePageNumbers: true
-    });
+  // Direct PDF export for saved study record
+  const handleExportPdfRecord = async (study: StudyContent) => {
+    try {
+      await downloadPdfFile(study, {
+        language: study.metadata.languageMode,
+        scopeMode: 'full',
+        includeQuranText: true,
+        includeComparativeTable: true,
+        includeLinguistic: true,
+        includeReflection: true,
+        includeGuidance: true,
+        includeHadith: true,
+        includeIslamicMedicine: study.islamicMedicineAndScience?.enabled ?? false,
+        includeReferences: true,
+        paperSize: 'A4',
+        includePageNumbers: true
+      });
+    } catch (e) {
+      console.warn('PDF download fallback to print:', e);
+      triggerPdfPrint(study, {
+        language: study.metadata.languageMode,
+        scopeMode: 'full',
+        includeQuranText: true,
+        includeComparativeTable: true,
+        includeLinguistic: true,
+        includeReflection: true,
+        includeGuidance: true,
+        includeHadith: true,
+        includeIslamicMedicine: study.islamicMedicineAndScience?.enabled ?? false,
+        includeReferences: true,
+        paperSize: 'A4',
+        includePageNumbers: true
+      });
+    }
   };
 
   // Save active study to library

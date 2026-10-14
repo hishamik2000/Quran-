@@ -227,11 +227,30 @@ export const ExportModal: React.FC<ExportModalProps> = ({
           <div className="mt-3 flex flex-col sm:flex-row gap-2">
             <button
               type="button"
-              onClick={handlePrintPdf}
-              className="flex-1 py-2.5 px-4 text-sm font-bold font-['Cairo'] text-white bg-emerald-900 hover:bg-emerald-950 dark:bg-emerald-800 rounded-lg shadow-sm flex items-center justify-center gap-2 cursor-pointer transition-colors"
+              onClick={handleDownloadPdf}
+              disabled={isDownloadingPdf}
+              className="flex-1 py-2.5 px-4 text-sm font-bold font-['Cairo'] text-white bg-emerald-900 hover:bg-emerald-950 dark:bg-emerald-800 rounded-lg shadow-sm flex items-center justify-center gap-2 cursor-pointer transition-colors disabled:opacity-50"
             >
-              <Printer className="w-4 h-4 text-amber-300" />
-              <span>{isAr ? 'طباعة وحفظ كـ PDF (بدون شعارات)' : 'Save as PDF (No Logo)'}</span>
+              {isDownloadingPdf ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span>{isAr ? 'جارٍ إنشاء وتحميل ملف PDF...' : 'Generating & Downloading PDF...'}</span>
+                </>
+              ) : (
+                <>
+                  <Download className="w-4 h-4 text-amber-300" />
+                  <span>{isAr ? 'تحميل ملف PDF مباشر (بدون شعارات)' : 'Download PDF File (No Logo)'}</span>
+                </>
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={handlePrintPdf}
+              className="py-2.5 px-3.5 text-xs font-bold font-['Cairo'] text-emerald-900 dark:text-emerald-100 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950 dark:hover:bg-emerald-900 rounded-lg border border-emerald-300 dark:border-emerald-700 flex items-center justify-center gap-1.5 cursor-pointer transition-colors whitespace-nowrap"
+              title={isAr ? 'فتح نافذة الطباعة / الحفظ الافتراضية' : 'Open system print dialog'}
+            >
+              <Printer className="w-3.5 h-3.5" />
+              <span>{isAr ? 'طباعة مباشرة' : 'Print View'}</span>
             </button>
             <button
               type="button"
