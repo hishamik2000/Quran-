@@ -1,0 +1,7 @@
+{
+  "name": "تدبّر آيات القرآن الكريم — Quranic Reflection & Tafsir Studio",
+  "description": "تطبيق متكامل لتدبر آيات القرآن الكريم ودراسة معانيه بالاستناد إلى أمهات كتب التفسير والتحليل البلاغي واللغوي والهدايات القرآنية وتصدير Word وPDF",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
